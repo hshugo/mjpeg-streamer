@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>MJPEG-Streamer</title>
+</head>
+<script type="text/javascript">
+
+ 
+
+/* Copyright (C) 2007 Richard Atterer, richard©atterer.net
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License, version 2. See the file
+   COPYING for details. */
+
+var imageNr = 0; // Serial number of current image
+var finished = new Array(); // References to img objects which have finished downloading
+var paused = true;
+
+function createImageLayer() {
+  var img = new Image();
+  img.style.zIndex = -1;
+  img.style.position = "absolute";
+  img.style.top ="20px";
+  img.style.marginLeft ="10px";
+  img.onload = imageOnload;
+  img.onclick = imageOnclick;
+  img.src = "/?action=snapshot&n=" + (++imageNr);
+  var webcam = document.getElementById("webcam");
+  webcam.insertBefore(img, webcam.firstChild);
+}
+
+// Two layers are always present (except at the very beginning), to avoid flicker
+function imageOnload() {
+  this.style.zIndex = (imageNr%3); // Image finished, bring to front!
+  while (1 < finished.length) {
+    var del = finished.shift(); // Delete old image(s) from document
+    del.parentNode.removeChild(del);
+  }
+  finished.push(this);
+  if (!paused) createImageLayer();
+}
+
+function imageOnclick() { // Clicking on the image will pause the stream
+  paused = !paused;
+  if (!paused) createImageLayer();
+}
+
+</script>
+<style>
+	.webcam {
+		display: flex;
+		flex-direction: column;
+		border: 0px solid blue;
+	}
+	.controls {
+		border: 1px solid #efefef;
+		padding: 5px;
+		width: 650px;
+		height: 490px;
+		display:flex;
+	    align-items: center;
+	    background: #ccc;
+	}
+	.direction-center {
+		border: 0px solid blue;
+		display: flex;
+		flex-direction: column;
+	}
+	.direction {
+		border: 1px solid yellow;
+		width:50px;
+		height:50px;
+		cursor: pointer;
+		z-index: 5;
+		opacity: 0.2;
+	  	filter: alpha(opacity=20);
+	}
+	.direction:hover {
+		opacity: 1;
+	  	filter: alpha(opacity=100);
+	}
+	.hide {
+		display:none;
+	}
+	.show {
+		display: block;
+	}
+</style>
+<body>
+
+
+<div class="webcam">
+	<div class="controls">
+	  <img src="left.png" class="direction" id="left">
+	  <div class="direction-center">
+		<img src="up.png" class="direction" id="up">
+		<img src="pause.jpeg" class="direction hide" id="pause" >
+		<img src="play.png" class="direction hide" id="play" >
+		<img src="down.png" class="direction" id="down">
+	  </div>
+	  <img src="right.png" class="direction" id="right">
+	</div>
+  <div id="webcam"><noscript><img src="/?action=snapshot" /></noscript></div>
+</div>
+<script type="text/javascript">
+  
+  	function clear() {
+  		document.querySelector("#pause").classList.remove("show");
+  		document.querySelector("#play").classList.remove("show");
+
+  		document.querySelector("#pause").classList.remove("hide");
+  		document.querySelector("#play").classList.remove("hide");
+  	}
+
+    
+    console.log(direction)
+    createImageLayer();
+    clear();
+    document.querySelector("#pause").classList.add("hide");
+    document.querySelector("#play").classList.add("show");
+    var direction = document.querySelectorAll(".direction");
+    direction.forEach(function(item,index) {
+        item.addEventListener('click', function() {
+          clear();
+          if(this.getAttribute('id') == "play") {
+            document.querySelector("#pause").classList.add("show");
+            document.querySelector("#play").classList.add("hide");
+          } else {
+            document.querySelector("#pause").classList.add("hide");
+            document.querySelector("#play").classList.add("show");
+          }
+          paused = !paused;
+          createImageLayer();
+        });
+    });
+
+</script>
+</body>
+</html>
